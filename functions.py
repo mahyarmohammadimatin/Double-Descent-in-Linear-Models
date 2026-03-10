@@ -1,6 +1,6 @@
 import numpy as np
 
-def synthetic_linear_reg_data_generate(n, d, seed, noise_std=0.1):
+def synthetic_linear_reg_data_generate(n, d, n_train, seed, noise_std=0.1):
     """
         X : Feature matrix (n, d)
         y : Noisy targets (n,)
@@ -14,5 +14,10 @@ def synthetic_linear_reg_data_generate(n, d, seed, noise_std=0.1):
     
     noise = rng.normal(loc=0.0, scale=noise_std, size=n)
     y = X @ rw + noise
-
-    return X, y, rw
+    
+    X_train = X[:n_train]
+    y_train = y[:n_train]
+    X_test = X[n_train:]
+    y_test = y[n_train:]
+    
+    return X_train, y_train, X_test, y_test, rw
