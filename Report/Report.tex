@@ -1,0 +1,131 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------
+% Packages
+% ---------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{booktabs}
+
+% ---------------------------
+% Page setup
+% ---------------------------
+\geometry{margin=1in}
+\setstretch{1.25}
+
+% ---------------------------
+% Title information
+% ---------------------------
+\title{Project Title}
+\author{Your Name \\ Course Name \\ Instructor Name}
+\date{\today}
+
+\begin{document}
+	
+	% ---------------------------
+	% Title Page
+	% ---------------------------
+	\maketitle
+	\thispagestyle{empty}
+	
+	\begin{abstract}
+		Write a short summary of your project here (around 100--200 words).
+		Explain the goal, the method, and the main result.
+	\end{abstract}
+	
+	\newpage
+	\tableofcontents
+	\newpage
+	
+	% ---------------------------
+	% Sections
+	% ---------------------------
+	
+	\section{Introduction}
+	
+	Introduce the topic of your project. Explain the problem and why it is
+	interesting or important.
+	
+	You can cite references like this \cite{example_ref}.
+	
+	\section{Background}
+	
+	Provide theoretical background or related work necessary to understand
+	your project.
+	
+	Example equation:
+	
+	\begin{equation}
+		E = mc^2
+	\end{equation}
+	
+	\section{Methodology}
+	
+	Explain what you did in the project.
+	
+	\subsection{Data or Setup}
+	
+	Describe the data, experiment setup, or tools used.
+	
+	\subsection{Procedure}
+	
+	Explain the steps you followed.
+	
+	\section{Results}
+	
+	Present the results of your project.
+	
+	Example figure:
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.6\textwidth]{example-image}
+		\caption{Example figure caption.}
+		\label{fig:example}
+	\end{figure}
+	
+	Example table:
+	
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{ccc}
+			\toprule
+			Item & Value 1 & Value 2 \\
+			\midrule
+			A & 10 & 20 \\
+			B & 15 & 25 \\
+			C & 18 & 30 \\
+			\bottomrule
+		\end{tabular}
+		\caption{Example table caption.}
+	\end{table}
+	
+	\section{Discussion}
+	
+	Interpret the results. Explain what they mean and whether they match
+	expectations.
+	
+	\section{Conclusion}
+	
+	Summarize the main findings and suggest possible future work.
+	
+	% ---------------------------
+	% References
+	% ---------------------------
+	\begin{thebibliography}{9}
+		
+		\bibitem{example_ref}
+		Author Name,
+		\textit{Title of the Work},
+		Publisher or Journal, Year.
+		
+	\end{thebibliography}
+	
+\end{document}
