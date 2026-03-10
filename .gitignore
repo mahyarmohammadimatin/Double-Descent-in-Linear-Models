@@ -10,6 +10,10 @@ __pycache__/
 /Report/Report.synctex.gz
 /Report/Report.toc
 
+# Temp ignore
+/Report/Report.pdf
+notebook.ipynb
+
 # C extensions
 *.so
 
