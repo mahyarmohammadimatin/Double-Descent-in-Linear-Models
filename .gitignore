@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# report latex related
+/Report/Report.aux
+/Report/Report.log
+/Report/Report.out
+/Report/Report.synctex.gz
+/Report/Report.toc
+
 # C extensions
 *.so
 
