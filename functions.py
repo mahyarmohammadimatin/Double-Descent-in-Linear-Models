@@ -21,3 +21,26 @@ def synthetic_linear_reg_data_generate(n, d, n_train, seed, noise_std=0.1):
     y_test = y[n_train:]
     
     return X_train, y_train, X_test, y_test, rw
+
+def fit_least_squares(X, y): # TODO: change to self implemented function
+    return np.linalg.pinv(X) @ y
+def predict(X, w):
+    return X @ w
+def mse(y_true, y_pred):
+    return np.mean((y_true - y_pred) ** 2)
+
+def fit_model_to_synthetic_data(model, seed_values, **data_gen_kwargs):
+    mse_train = []
+    mse_test = []
+    for seed in seed_values:
+        X_train,y_train,X_test,y_test,rw = synthetic_linear_reg_data_generate(seed=seed, **data_gen_kwargs)
+        
+        if model=='ls':
+            w_hat = fit_least_squares(X_train, y_train)
+
+        y_train_pred = predict(X_train, w_hat)
+        y_test_pred = predict(X_test, w_hat)
+        
+        mse_train.append(mse(y_train, y_train_pred))
+        mse_test.append(mse(y_test, y_test_pred))
+    return np.mean(mse_train), np.mean(mse_test)
