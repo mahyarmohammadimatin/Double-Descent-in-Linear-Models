@@ -14,6 +14,9 @@ __pycache__/
 /Report/Report.pdf
 notebook.ipynb
 
+#Pycharm Related
+/.idea
+
 # C extensions
 *.so
 
