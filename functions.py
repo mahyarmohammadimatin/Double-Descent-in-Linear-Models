@@ -30,7 +30,7 @@ class SyntheticData:
         return X_train, y_train, X_test, y_test
 
 class DDSimulation:
-    def __init__(self, model, n_train, n_test, dim_values, seed_values, noise_values, lam_values):
+    def __init__(self, model, n_train, n_test, dim_values, seed_values, noise_values, lam_values=None):
         # Fixed Attrs
         self.model = model
         self.n_train = n_train
@@ -40,7 +40,7 @@ class DDSimulation:
         self.dim_values = dim_values
         self.seed_values = seed_values
         self.noise_values = noise_values
-        self.lam_values = lam_values
+        self.lam_values = lam_values if lam_values is not None else [None]
 
     def fit_model_to_specific_config(self, seed, dim, noise_std, lam=None):
         synthetic_data = SyntheticData(n=self.n_train+self.n_test, dim=dim, seed=seed)
