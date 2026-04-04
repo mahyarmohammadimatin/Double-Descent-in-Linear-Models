@@ -76,3 +76,17 @@ class DDSimulation:
             results[f'train_{noise_std}_{lam}'] = train_errors
             results[f'test_{noise_std}_{lam}'] = test_errors
 
+        # self.plot_simulation(results) TODO: add in future for all combinations of (noise_std, lam)
+        self.plot_train_test_error(train_errors, test_errors)
+
+    def plot_train_test_error(self, train_errors, test_errors):
+        plt.figure(figsize=(8, 5))
+        plt.plot(self.dim_values, train_errors, label="Train error")
+        plt.plot(self.dim_values, test_errors, label="Test error")
+        plt.axvline(x=self.n_train, linestyle="--", label=f"Interpolation threshold d=n={self.n_train}")
+        plt.xlabel("Model complexity (dimension d)")
+        plt.ylabel("Mean squared error")
+        plt.title("Least Squares: Train/Test Error vs Model Complexity")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
