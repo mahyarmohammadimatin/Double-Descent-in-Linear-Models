@@ -86,7 +86,30 @@ class DDSimulation:
         plt.axvline(x=self.n_train, linestyle="--", label=f"Interpolation threshold d=n={self.n_train}")
         plt.xlabel("Model complexity (dimension d)")
         plt.ylabel("Mean squared error")
-        plt.title("Least Squares: Train/Test Error vs Model Complexity")
+        plt.title(f"{'Least Square' if self.model=='ls' else 'Ridge Regression'}: Train/Test Error vs Model Complexity")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    def plot_condition_number(self):
+        condition_numbers = []
+        for dim in self.dim_values:
+            cond_vals = []
+            for seed in self.seed_values:
+                synthetic_data = SyntheticData(n=self.n_train + self.n_test,dim=dim,seed=seed)
+                X_train = synthetic_data.data[:self.n_train]
+                s = np.linalg.svd(X_train, compute_uv=False)
+                cond_vals.append(np.max(s) / np.min(s))
+            condition_numbers.append(np.mean(cond_vals))
+
+        plt.figure(figsize=(8, 5))
+        plt.plot(self.dim_values, condition_numbers)
+        plt.axvline(x=self.n_train, linestyle="--", label=f"d = n = {self.n_train}")
+        plt.axhline(y=30, linestyle="--", label=f"Acceptable Condition Number Threshold", color="green")
+        plt.yscale("log")
+        plt.xlabel("Model complexity (dimension d)")
+        plt.ylabel("Condition number (log scale)")
+        plt.title("Condition Number of X_train vs Model Complexity")
         plt.legend()
         plt.tight_layout()
         plt.show()
