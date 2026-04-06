@@ -30,7 +30,7 @@ class SyntheticData:
         return X_train, y_train, X_test, y_test
 
 class DDSimulation:
-    def __init__(self, model, n_train, n_test, dim_values, seed_values, noise_values, lam_values=None):
+    def __init__(self, model, n_train, n_test, dim_values, seed_values, noise_values, model_kwargs_values=None):
         # Fixed Attrs
         self.model = model
         self.n_train = n_train
@@ -40,9 +40,9 @@ class DDSimulation:
         self.dim_values = dim_values
         self.seed_values = seed_values
         self.noise_values = noise_values
-        self.lam_values = lam_values if lam_values is not None else [None]
+        self.model_kwargs_values = model_kwargs_values if model_kwargs_values is not None else {}
 
-    def fit_model_to_specific_config(self, seed, dim, noise_std, lam=None):
+    def fit_model_to_specific_config(self, seed, dim, noise_std, **model_kwargs):
         synthetic_data = SyntheticData(n=self.n_train+self.n_test, dim=dim, seed=seed)
         X, y = synthetic_data.generate_linear_regression_data(noise_std=noise_std)
         X_train, y_train, X_test, y_test = synthetic_data.split_train_test(X, y, n_train=self.n_train)
@@ -50,9 +50,11 @@ class DDSimulation:
         if self.model == 'ls':
             w_hat = fit_least_squares(X_train, y_train)
         elif self.model == 'ridge':
-            w_hat = fit_ridge_regression(X_train, y_train, lam)
+            w_hat = fit_ridge_regression(X_train, y_train, lam=model_kwargs['lam'])
+        elif self.model == 'gd':
+            w_hat = fit_least_squares_gd(X_train, y_train, lr=model_kwargs['lr'], n_iters=model_kwargs['n_iters'])
         else:
-            raise ValueError("model must be 'ls' or 'ridge'")
+            raise ValueError("model must be 'ls', 'ridge', or 'gd'")
 
         y_train_pred = predict(X_train, w_hat)
         y_test_pred = predict(X_test, w_hat)
@@ -61,32 +63,39 @@ class DDSimulation:
 
     def run_simulation(self):
         results = {}
-        for noise_std, lam in product(self.noise_values, self.lam_values):
+        keys = self.model_kwargs_values.keys()
+        value_lists = self.model_kwargs_values.values()
+        for noise_std, model_specific_vals in product(self.noise_values, product(*value_lists)):
+            model_kwargs = dict(zip(keys, model_specific_vals))
             train_errors, test_errors = [], []
             for dim in self.dim_values:
                 mse_trains, mse_tests = [], []
                 for seed in self.seed_values:
-                    mse_train, mse_test = self.fit_model_to_specific_config(seed=seed, dim=dim, noise_std=noise_std, lam=lam)
+                    mse_train, mse_test = self.fit_model_to_specific_config(seed=seed, dim=dim, noise_std=noise_std, **model_kwargs)
                     mse_trains.append(mse_train)
                     mse_tests.append(mse_test)
                 # Average on different seeds
                 train_errors.append(np.mean(mse_trains))
                 test_errors.append(np.mean(mse_tests))
-            # for each combination of (noise_std, lam) save list of errors corresponding to dimension values
-            results[f'train_{noise_std}_{lam}'] = train_errors
-            results[f'test_{noise_std}_{lam}'] = test_errors
+            # for each combination of (noise_std, model_kwarg) save list of errors corresponding to dimension values
+            suffix = f'Noise:{noise_std}'
+            for key,value in model_kwargs.items():
+                suffix += f', {key}:{value}'
+            results[suffix] = (train_errors, test_errors)
 
-        # self.plot_simulation(results) TODO: add in future for all combinations of (noise_std, lam)
-        self.plot_train_test_error(train_errors, test_errors)
+        self.plot_simulation(results)
 
-    def plot_train_test_error(self, train_errors, test_errors):
+    def plot_simulation(self, results):
+        model_name = {'ls':'Least Square','ridge':'Ridge Regression','gd':'Gradient Descent'}[self.model]
+        suffix = list(results.keys())[0]
+        train_errors, test_errors = results[suffix]
         plt.figure(figsize=(8, 5))
         plt.plot(self.dim_values, train_errors, label="Train error")
         plt.plot(self.dim_values, test_errors, label="Test error")
         plt.axvline(x=self.n_train, linestyle="--", label=f"Interpolation threshold d=n={self.n_train}")
         plt.xlabel("Model complexity (dimension d)")
         plt.ylabel("Mean squared error")
-        plt.title(f"{'Least Square' if self.model=='ls' else 'Ridge Regression'}: Train/Test Error vs Model Complexity")
+        plt.title(f"{model_name} ({suffix})")
         plt.legend()
         plt.tight_layout()
         plt.show()
