@@ -1,7 +1,7 @@
 import numpy as np
 
 # ---------------------------------------- Machine Learning Models From Scratch ----------------------------------------
-def fit_least_squares(X, y, fast=False):
+def fit_least_squares(X, y, fast=True):
     if fast:
         return np.linalg.pinv(X) @ y
     # w_hat = (X^T X)^(-1) X^T y
@@ -16,7 +16,7 @@ def fit_least_squares(X, y, fast=False):
         Xty = np.dot(Xt, y)
         w_hat = np.dot(XtX_inv, Xty)
     return w_hat
-def fit_ridge_regression(X, y, lam, fast=False):
+def fit_ridge_regression(X, y, lam, fast=True):
     n, d = X.shape
     I = np.eye(d)
     if fast:
@@ -132,31 +132,60 @@ def pseudoinverse_svd(X):
 
     return np.dot(V, np.dot(S_inv, U.T)) # X^+ = V S^+ U^T
 
-def svd(X, fast=True):
+def svd(X, fast=True, tol=1e-10):
     if fast:
         U, s, Vt = np.linalg.svd(X, full_matrices=False)
-        V = Vt.T
-        return U, s, V
-    XtX = np.dot(X.T, X)
-    eigenvalues, V = eigenvalue(XtX)
+        return U, s, Vt.T
 
-    idx = np.argsort(eigenvalues)[::-1]
-    eigenvalues = eigenvalues[idx]
-    V = V[:, idx]
+    n, d = X.shape
 
-    singular_values = np.sqrt(np.maximum(eigenvalues, 0))
+    if n <= d:
+        # Compute U from XX^T
+        XX = np.dot(X, X.T)   # (n x n)
+        eigenvalues, U = eigenvalue(XX)
 
-    # Compute U
-    U = []
-    for i in range(len(singular_values)):
-        sigma = singular_values[i]
-        if sigma > 1e-10:
+        idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idx]
+        U = U[:, idx]
+
+        singular_values = np.sqrt(np.maximum(eigenvalues, 0))
+
+        valid = singular_values > tol
+        singular_values = singular_values[valid]
+        U = U[:, valid]
+
+        # Compute V from U
+        V = []
+        for i in range(len(singular_values)):
+            sigma = singular_values[i]
+            v = np.dot(X.T, U[:, i]) / sigma
+            V.append(v)
+
+        V = np.column_stack(V)
+
+    else:
+        # Compute V from X^T X
+        XX = np.dot(X.T, X)   # (d x d)
+        eigenvalues, V = eigenvalue(XX)
+
+        idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idx]
+        V = V[:, idx]
+
+        singular_values = np.sqrt(np.maximum(eigenvalues, 0))
+
+        valid = singular_values > tol
+        singular_values = singular_values[valid]
+        V = V[:, valid]
+
+        # Compute U from V
+        U = []
+        for i in range(len(singular_values)):
+            sigma = singular_values[i]
             u = np.dot(X, V[:, i]) / sigma
-        else:
-            u = np.zeros(X.shape[0])
-        U.append(u)
+            U.append(u)
 
-    U = np.column_stack(U)
+        U = np.column_stack(U)
 
     return U, singular_values, V
 
