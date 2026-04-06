@@ -19,3 +19,20 @@ def predict(X, w):
     return X @ w
 def mse(y_true, y_pred):
     return np.mean((y_true - y_pred) ** 2)
+def get_metrics(y_true, y_pred):
+    bias = np.mean(y_pred - y_true)
+    variance = np.var(y_pred - y_true)
+    MSE = mse(y_true, y_pred)
+    bias_squared = bias ** 2
+    bias_squared + variance
+    return {'bias':bias, 'variance':variance, 'mse':MSE}
+
+def merge_dictionaries(list_of_dicts):
+    final_dict = {}
+    for key in list_of_dicts[0]:
+        final_dict[key] = []
+        for dictionary in list_of_dicts:
+            final_dict[key].append(dictionary[key])
+    return final_dict
+def avg_of_dictionaries(list_of_dicts):
+    return {key: np.mean(value) for key,value in merge_dictionaries(list_of_dicts).items()}

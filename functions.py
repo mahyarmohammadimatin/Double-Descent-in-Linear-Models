@@ -59,7 +59,7 @@ class DDSimulation:
         y_train_pred = predict(X_train, w_hat)
         y_test_pred = predict(X_test, w_hat)
 
-        return mse(y_train, y_train_pred), mse(y_test, y_test_pred)
+        return y_train, y_train_pred, y_test, y_test_pred
 
     def run_simulation(self):
         results = {}
@@ -67,21 +67,23 @@ class DDSimulation:
         value_lists = self.model_kwargs_values.values()
         for noise_std, model_specific_vals in product(self.noise_values, product(*value_lists)):
             model_kwargs = dict(zip(keys, model_specific_vals))
-            train_errors, test_errors = [], []
+            avg_metrics_train_list, avg_metrics_test_list = [], []
             for dim in self.dim_values:
-                mse_trains, mse_tests = [], []
+                metrics_train, metrics_test = [], []
                 for seed in self.seed_values:
-                    mse_train, mse_test = self.fit_model_to_specific_config(seed=seed, dim=dim, noise_std=noise_std, **model_kwargs)
-                    mse_trains.append(mse_train)
-                    mse_tests.append(mse_test)
+                    y_train, y_train_pred, y_test, y_test_pred = self.fit_model_to_specific_config(seed=seed, dim=dim, noise_std=noise_std, **model_kwargs)
+                    metrics_train.append(get_metrics(y_train, y_train_pred))
+                    metrics_test.append(get_metrics(y_test, y_test_pred))
                 # Average on different seeds
-                train_errors.append(np.mean(mse_trains))
-                test_errors.append(np.mean(mse_tests))
+                avg_metrics_train_list.append(avg_of_dictionaries(metrics_train))
+                avg_metrics_test_list.append(avg_of_dictionaries(metrics_test))
             # for each combination of (noise_std, model_kwarg) save list of errors corresponding to dimension values
             suffix = f'Noise:{noise_std}'
             for key,value in model_kwargs.items():
                 suffix += f', {key}:{value}'
-            results[suffix] = (train_errors, test_errors)
+            train_metrics_in_different_dims = merge_dictionaries(avg_metrics_train_list)
+            test_metrics_in_different_dims = merge_dictionaries(avg_metrics_test_list)
+            results[suffix] = (train_metrics_in_different_dims, test_metrics_in_different_dims)
 
         self.plot_simulation(results)
 
@@ -95,7 +97,8 @@ class DDSimulation:
         fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), squeeze=False)
         axes_flat = axes.flatten()
 
-        for i, (suffix, (train_errors, test_errors)) in enumerate(results.items()):
+        for i, (suffix, (train_metrics, test_metrics)) in enumerate(results.items()):
+            train_errors, test_errors = train_metrics['mse'], test_metrics['mse']
             ax = axes_flat[i]
             ax.plot(self.dim_values, train_errors, label="Train error")
             ax.plot(self.dim_values, test_errors, label="Test error")
