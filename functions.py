@@ -42,6 +42,9 @@ class DDSimulation:
         self.noise_values = noise_values
         self.model_kwargs_values = model_kwargs_values if model_kwargs_values is not None else {}
 
+        # output variables
+        self.last_simulation_result = None
+
     def fit_model_to_specific_config(self, seed, dim, noise_std, **model_kwargs):
         synthetic_data = SyntheticData(n=self.n_train+self.n_test, dim=dim, seed=seed)
         X, y = synthetic_data.generate_linear_regression_data(noise_std=noise_std)
@@ -85,27 +88,27 @@ class DDSimulation:
             test_metrics_in_different_dims = merge_dictionaries(avg_metrics_test_list)
             results[suffix] = (train_metrics_in_different_dims, test_metrics_in_different_dims)
 
-        self.plot_simulation(results)
+        self.last_simulation_result = results
 
-    def plot_simulation(self, results):
+    def plot_simulation(self, metric='mse'):
         model_name_map = {'ls': 'Least Square', 'ridge': 'Ridge Regression', 'gd': 'Gradient Descent'}
         model_name = model_name_map.get(self.model, self.model)
 
-        num_plots = len(results)
+        num_plots = len(self.last_simulation_result)
         cols = 3 if num_plots > 3 else num_plots
         rows = int(np.ceil(num_plots / cols))
         fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), squeeze=False)
         axes_flat = axes.flatten()
 
-        for i, (suffix, (train_metrics, test_metrics)) in enumerate(results.items()):
-            train_errors, test_errors = train_metrics['mse'], test_metrics['mse']
+        for i, (suffix, (train_metrics, test_metrics)) in enumerate(self.last_simulation_result.items()):
+            train_errors, test_errors = train_metrics[metric], test_metrics[metric]
             ax = axes_flat[i]
-            ax.plot(self.dim_values, train_errors, label="Train error")
-            ax.plot(self.dim_values, test_errors, label="Test error")
+            ax.plot(self.dim_values, train_errors, label=f"Train {metric}")
+            ax.plot(self.dim_values, test_errors, label=f"Test {metric}")
             ax.axvline(x=self.n_train, color='gray', linestyle="--", alpha=0.7,
                        label=f"Threshold (d={self.n_train})")
             ax.set_xlabel("Dimension d")
-            ax.set_ylabel("MSE")
+            ax.set_ylabel(f"{metric}")
             ax.set_title(f"{model_name}\n{suffix}")
             ax.legend()
             ax.grid(True, which='both', linestyle='--', alpha=0.5)

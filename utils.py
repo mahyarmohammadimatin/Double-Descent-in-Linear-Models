@@ -25,7 +25,7 @@ def get_metrics(y_true, y_pred):
     MSE = mse(y_true, y_pred)
     bias_squared = bias ** 2
     bias_squared + variance
-    return {'bias':bias, 'variance':variance, 'mse':MSE}
+    return {'bias':bias, 'variance':variance, 'mse':MSE, 'bias2':bias_squared}
 
 def merge_dictionaries(list_of_dicts):
     final_dict = {}
