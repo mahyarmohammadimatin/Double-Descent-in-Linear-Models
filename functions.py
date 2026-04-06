@@ -86,17 +86,28 @@ class DDSimulation:
         self.plot_simulation(results)
 
     def plot_simulation(self, results):
-        model_name = {'ls':'Least Square','ridge':'Ridge Regression','gd':'Gradient Descent'}[self.model]
-        suffix = list(results.keys())[0]
-        train_errors, test_errors = results[suffix]
-        plt.figure(figsize=(8, 5))
-        plt.plot(self.dim_values, train_errors, label="Train error")
-        plt.plot(self.dim_values, test_errors, label="Test error")
-        plt.axvline(x=self.n_train, linestyle="--", label=f"Interpolation threshold d=n={self.n_train}")
-        plt.xlabel("Model complexity (dimension d)")
-        plt.ylabel("Mean squared error")
-        plt.title(f"{model_name} ({suffix})")
-        plt.legend()
+        model_name_map = {'ls': 'Least Square', 'ridge': 'Ridge Regression', 'gd': 'Gradient Descent'}
+        model_name = model_name_map.get(self.model, self.model)
+
+        num_plots = len(results)
+        cols = 3 if num_plots > 3 else num_plots
+        rows = int(np.ceil(num_plots / cols))
+        fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), squeeze=False)
+        axes_flat = axes.flatten()
+
+        for i, (suffix, (train_errors, test_errors)) in enumerate(results.items()):
+            ax = axes_flat[i]
+            ax.plot(self.dim_values, train_errors, label="Train error")
+            ax.plot(self.dim_values, test_errors, label="Test error")
+            ax.axvline(x=self.n_train, color='gray', linestyle="--", alpha=0.7,
+                       label=f"Threshold (d={self.n_train})")
+            ax.set_xlabel("Dimension d")
+            ax.set_ylabel("MSE")
+            ax.set_title(f"{model_name}\n{suffix}")
+            ax.legend()
+            ax.grid(True, which='both', linestyle='--', alpha=0.5)
+        for j in range(i + 1, len(axes_flat)):
+            fig.delaxes(axes_flat[j])  # Remove empty subplots
         plt.tight_layout()
         plt.show()
 
