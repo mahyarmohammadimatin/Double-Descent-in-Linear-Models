@@ -124,7 +124,7 @@ class DDSimulation:
             for seed in self.seed_values:
                 synthetic_data = SyntheticData(n=self.n_train + self.n_test,dim=dim,seed=seed)
                 X_train = synthetic_data.data[:self.n_train]
-                s = np.linalg.svd(X_train, compute_uv=False)
+                _,s,_ = svd(X_train)
                 cond_vals.append(np.max(s) / np.min(s))
             condition_numbers.append(np.mean(cond_vals))
 
