@@ -94,28 +94,60 @@ class DDSimulation:
         model_name_map = {'ls': 'Least Square', 'ridge': 'Ridge Regression', 'gd': 'Gradient Descent'}
         model_name = model_name_map.get(self.model, self.model)
 
-        num_plots = len(self.last_simulation_result)
+        if group_attrs:
+            grouped_suffix = self.group_configs(list(self.last_simulation_result.keys()), group_attrs)
+        else:
+            grouped_suffix = [[key] for key in self.last_simulation_result.keys()]
+
+        num_plots = len(grouped_suffix)
         cols = 3 if num_plots > 3 else num_plots
         rows = int(np.ceil(num_plots / cols))
         fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4), squeeze=False)
         axes_flat = axes.flatten()
 
-        for i, (suffix, (train_metrics, test_metrics)) in enumerate(self.last_simulation_result.items()):
-            train_errors, test_errors = train_metrics[metric], test_metrics[metric]
+        for i, suffix_group in enumerate(grouped_suffix):
             ax = axes_flat[i]
-            if train:
-                ax.plot(self.dim_values, train_errors, label=f"Train {metric}")
-            ax.plot(self.dim_values, test_errors, label=f"Test {metric}")
+
+            for suffix in suffix_group:
+                train_metrics, test_metrics = self.last_simulation_result[suffix]
+                train_errors, test_errors = train_metrics[metric], test_metrics[metric]
+                label_suffix = f" ({self.edit_suffix(suffix, exclude=group_attrs)})" if group_attrs is not None else ""
+                if train:
+                    ax.plot(self.dim_values, train_errors, label=f"Train {metric}"+label_suffix)
+                ax.plot(self.dim_values, test_errors, label=f"Test {metric}"+label_suffix)
             ax.axvline(x=self.n_train, color='gray', linestyle="--", alpha=0.7, label=f"Threshold (d={self.n_train})")
             ax.set_xlabel("Dimension d")
             ax.set_ylabel(f"{metric}")
-            ax.set_title(f"{model_name}\n{suffix}")
-            ax.legend()
+            ax.set_title(f"{model_name}\n{self.edit_suffix(suffix_group[0], include=group_attrs) if group_attrs is not None else suffix}")
+            ax.legend(fontsize=7)
             ax.grid(True, which='both', linestyle='--', alpha=0.5)
         for j in range(i + 1, len(axes_flat)):
             fig.delaxes(axes_flat[j])  # Remove empty subplots
         plt.tight_layout()
         plt.show()
+
+    @staticmethod
+    def edit_suffix(suffix, include=None, exclude=None):
+        if include is not None and exclude is not None:
+            raise ValueError('Cannot specify both include and exclude')
+        is_valid = lambda s,attrs: any([s.startswith(attr) for attr in attrs])
+        if include:
+            return ','.join([s for s in suffix.split(',') if is_valid(s.strip(), include)])
+        return ','.join([s for s in suffix.split(',') if not is_valid(s.strip(), exclude)])
+
+    @staticmethod
+    def group_configs(suffixes, group_attrs):
+        def config_from_suffix(suffix):
+            attr_value = [s.strip().split(':') for s in suffix.split(',')]
+            return {attr: value for attr, value in attr_value}
+        groups = {}
+        for suffix in suffixes:
+            parsed = config_from_suffix(suffix)
+            key = tuple(parsed.get(attr) for attr in group_attrs)
+            if key not in groups:
+                groups[key]=[]
+            groups[key].append(suffix)
+        return list(groups.values())
 
     def plot_condition_number(self):
         condition_numbers = []
