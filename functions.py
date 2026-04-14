@@ -81,7 +81,7 @@ class DDSimulation:
                 avg_metrics_train_list.append(avg_of_dictionaries(metrics_train))
                 avg_metrics_test_list.append(avg_of_dictionaries(metrics_test))
             # for each combination of (noise_std, model_kwarg) save list of errors corresponding to dimension values
-            suffix = f'Noise:{noise_std}'
+            suffix = f'noise:{noise_std}'
             for key,value in model_kwargs.items():
                 suffix += f', {key}:{value}'
             train_metrics_in_different_dims = merge_dictionaries(avg_metrics_train_list)
@@ -90,7 +90,7 @@ class DDSimulation:
 
         self.last_simulation_result = results
 
-    def plot_simulation(self, metric='mse'):
+    def plot_simulation(self, metric='mse', train=False, group_attrs=None):
         model_name_map = {'ls': 'Least Square', 'ridge': 'Ridge Regression', 'gd': 'Gradient Descent'}
         model_name = model_name_map.get(self.model, self.model)
 
@@ -103,10 +103,10 @@ class DDSimulation:
         for i, (suffix, (train_metrics, test_metrics)) in enumerate(self.last_simulation_result.items()):
             train_errors, test_errors = train_metrics[metric], test_metrics[metric]
             ax = axes_flat[i]
-            ax.plot(self.dim_values, train_errors, label=f"Train {metric}")
+            if train:
+                ax.plot(self.dim_values, train_errors, label=f"Train {metric}")
             ax.plot(self.dim_values, test_errors, label=f"Test {metric}")
-            ax.axvline(x=self.n_train, color='gray', linestyle="--", alpha=0.7,
-                       label=f"Threshold (d={self.n_train})")
+            ax.axvline(x=self.n_train, color='gray', linestyle="--", alpha=0.7, label=f"Threshold (d={self.n_train})")
             ax.set_xlabel("Dimension d")
             ax.set_ylabel(f"{metric}")
             ax.set_title(f"{model_name}\n{suffix}")
