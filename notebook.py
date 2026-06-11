@@ -18,15 +18,15 @@
 
 # %%
 from functions import *
-import numpy as np
-
-# %%
 # General Parameters Setup
 n_train = 100
 n_test = 1000
-noise_values = [0.5]
+noise_values = [0.2, 0.4, 0.8]
 dim_values = np.arange(10, 201, 5) # Data Dimension
-seed_values = np.arange(1,3) # fixed seeds to see the same result as me
+seed_values = np.arange(1,10) # fixed seeds to see the same result as me
+
+# %% [markdown]
+# ## 3. Results and Analysis
 
 # %% [markdown]
 # ## Simulation on Least Squares
@@ -42,7 +42,7 @@ simulation.run_simulation()
 
 # %%
 model = 'ridge'
-lam_values = [1e-2]
+model_kwargs_values = {'lam':[0.05,0.1,1]}
 simulation = DDSimulation(model=model, n_train=n_train, n_test=n_test,
-			 dim_values=dim_values, seed_values=seed_values, noise_values=noise_values, lam_values=lam_values)
+			 dim_values=dim_values, seed_values=seed_values, noise_values=noise_values, model_kwargs_values=model_kwargs_values)
 simulation.run_simulation()
